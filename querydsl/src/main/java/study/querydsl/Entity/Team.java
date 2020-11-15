@@ -11,9 +11,7 @@ import javax.persistence.OneToMany;
 
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.ToString;
 
 @Entity
@@ -29,4 +27,8 @@ public class Team {
 	
 	@OneToMany(mappedBy = "team")
 	private List<Member> members = new ArrayList<>();
+	
+	public Team(String name) {
+		this.name = name;
+	}
 }

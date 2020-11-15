@@ -17,6 +17,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.ExpressionUtils;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -24,7 +26,9 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import study.querydsl.Entity.Member;
 import study.querydsl.Entity.QMember;
 import study.querydsl.Entity.Team;
-import study.querydsl.Entity.Testasd;
+import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.QMemberDto;
+import study.querydsl.dto.UserDto;
 
 @SpringBootTest
 @Transactional
@@ -279,4 +283,61 @@ class MemberTest {
 			System.out.println("s = "+s);
 		}
 	}
+	
+	@Test
+	public void tupleProjection() {
+		List<Tuple> result = queryFactory
+				.select(member.username, member.age)
+				.from(member)
+				.fetch();
+		
+		for(Tuple tuple : result) {
+			String username = tuple.get(member.username);
+			int age = tuple.get(member.age);
+			System.out.println("username = "+username);
+			System.out.println("age = "+age);
+		}
+	}
+	
+	@Test
+	public void projection() {
+		List<MemberDto> result = queryFactory
+				 .select(Projections.bean(MemberDto.class,
+				 member.username,
+				 member.age))
+				 .from(member)
+				 .fetch();
+		
+		List<UserDto> fetch = queryFactory
+				 .select(Projections.fields(UserDto.class,
+				 member.username.as("name"),
+				 ExpressionUtils.as(
+				 JPAExpressions
+				 .select(member.age.max())
+				 .from(member), "age")
+				 )
+				 ).from(member)
+				 .fetch();
+		
+		List<MemberDto> resultconstructor = queryFactory
+				 .select(Projections.constructor(MemberDto.class,
+				 member.username,
+				 member.age))
+				 .from(member)
+				 .fetch();
+	}
+	
+	@Test
+	public void findDtoByQueryPOrojection() {
+		List<MemberDto> result = queryFactory
+		.select(new QMemberDto(member.username, member.age))
+		.from(member)
+		.fetch();
+		
+		for(MemberDto memberDto : result) {
+			System.out.println("memberDto = " + memberDto);
+		}
+	}
+	
+	
 }
